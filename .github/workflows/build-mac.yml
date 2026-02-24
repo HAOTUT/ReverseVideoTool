@@ -1,0 +1,44 @@
+# 工作流名称：Mac打包视频倒放工具
+name: Build Mac Executable
+
+# 触发方式：1.手动触发 2.推送代码到main分支时自动触发
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+# 定义任务：在Mac环境打包
+jobs:
+  build-mac:
+    # 指定云端Mac环境（GitHub官方的macOS最新版）
+    runs-on: macos-latest
+    
+    # 任务步骤
+    steps:
+      # 步骤1：拉取仓库代码到云端Mac机器
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # 步骤2：安装Python 3.13（和你的代码版本匹配）
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+
+      # 步骤3：升级pip并安装依赖（OpenCV/PyInstaller/Pillow）
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install opencv-python pyinstaller pillow -i https://pypi.tuna.tsinghua.edu.cn/simple/
+
+      # 步骤4：执行Mac打包命令（生成.app文件）
+      - name: Build Mac app
+        run: |
+          python -m PyInstaller -F -w -i "video_icon.icns" --collect-all cv2 -n 视频倒放工具 ReverseVedio.py
+
+      # 步骤5：上传打包产物（供下载）
+      - name: Upload Mac app
+        uses: actions/upload-artifact@v4
+        with:
+          name: Mac-ReverseVideoTool
+          path: dist/视频倒放工具.app
